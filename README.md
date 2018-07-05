@@ -1,2 +1,0 @@
-# Intilery
-Technical challenge
