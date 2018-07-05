@@ -1,0 +1,85 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:1.5.8.RELEASE")
+    }
+}
+
+plugins {
+    id 'com.github.ben-manes.versions' version '0.17.0'
+}
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+apply plugin: 'org.springframework.boot'
+
+configurations {
+    cucumberRuntime {
+        extendsFrom testRuntime
+    }
+}
+
+jar {
+    baseName = 'com.intilery.exercise'
+    version = '0.1.0'
+}
+
+test {
+    exclude '/features/*'
+    exclude '/tests/manual/*'
+}
+
+task verify() {
+    dependsOn assemble, build
+    doLast {
+        javaexec {
+            main = "cucumber.api.cli.Main"
+            classpath = configurations.cucumberRuntime + sourceSets.main.output + sourceSets.test.output
+            args = ['--plugin', 'pretty', '--plugin', 'html:build/cucumber-html-report', '--glue', 'features', 'src/test/resources', '--tags', '~@pending', '--tags', '~@wip']
+        }
+    }
+}
+
+task wip() {
+    dependsOn assemble, build
+    doLast {
+        javaexec {
+            main = "cucumber.api.cli.Main"
+            classpath = configurations.cucumberRuntime + sourceSets.main.output + sourceSets.test.output
+            args = ['--plugin', 'pretty', '--glue', 'features', 'src/test/resources', '--tags', '@wip']
+        }
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+def cucumberVersion = "1.2.5"
+
+dependencies {
+    compile("org.springframework.boot:spring-boot-starter-web") {
+        exclude module: "spring-boot-starter-tomcat"
+    }
+    compile("org.springframework.boot:spring-boot-starter-jetty")
+    compile("org.springframework.boot:spring-boot-starter-actuator")
+
+    compile("joda-time:joda-time:2.9.9")
+    compile("com.google.guava:guava:23.4-jre")
+    compile("com.tinkerpop.blueprints:blueprints-core:2.6.0")
+
+    testCompile("org.springframework.boot:spring-boot-starter-test")
+    testCompile("commons-io:commons-io:2.6")
+    testCompile("org.glassfish.jersey.core:jersey-client:2.25")
+    testCompile("com.google.inject:guice:4.1.0")
+    testCompile("info.cukes:cucumber-core:${cucumberVersion}")
+    testCompile("info.cukes:cucumber-java:${cucumberVersion}")
+    testCompile("info.cukes:cucumber-junit:${cucumberVersion}")
+    testCompile("info.cukes:cucumber-spring:${cucumberVersion}")
+}
